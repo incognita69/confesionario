@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Confesionario Anónimo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+
+    form {
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #aaa;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 20px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #ccc;
+    }
+
+    img, video {
+      display: block;
+      margin-top: 10px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Confesionario Anónimo</h1>
+
+  <form action="/confesar" method="POST" enctype="multipart/form-data">
+    <textarea name="confesion" rows="4" cols="50" placeholder="Escribe tu confesión aquí..." required></textarea><br>
+    <input type="file" name="archivo" accept="image/,video/"><br><br>
+    <button type="submit">Confesar</button>
+  </form>
+
+  <button onclick="verConfesiones()">Ver confesiones</button>
+  <ul id="lista"></ul>
+
+  <script>
+    async function verConfesiones() {
+      const res = await fetch('/confesiones');
+      const confesiones = await res.json();
+      const lista = document.getElementById('lista');
+      lista.innerHTML = '';
+
+      confesiones.forEach(texto => {
+        const li = document.createElement('li');
+
+        // Extrae ruta de archivo si existe
+        const rutaArchivo = texto.match(/\/uploads\/[^\s]+/);
+        let textoSinArchivo = texto;
+
+        if (rutaArchivo) {
+          textoSinArchivo = texto.replace(rutaArchivo[0], '').trim();
+        }
+
+        // Agrega el texto de la confesión
+        const p = document.createElement('p');
+        p.textContent = textoSinArchivo;
+        li.appendChild(p);
+
+        // Agrega imagen o video si hay archivo
+        if (rutaArchivo) {
+          const url = rutaArchivo[0];
+          if (/\.(jpg|jpeg|png|gif)$/i.test(url)) {
+            const img = document.createElement('img');
+            img.src = url;
+            li.appendChild(img);
+          } else if (/\.(mp4|webm|ogg)$/i.test(url)) {
+            const video = document.createElement('video');
+            video.src = url;
+            video.controls = true;
+            li.appendChild(video);
+          }
+        }
+
+        lista.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
